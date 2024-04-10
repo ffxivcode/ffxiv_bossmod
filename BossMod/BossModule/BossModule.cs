@@ -29,10 +29,7 @@ public abstract class BossModule : IDisposable
         var entry = _relevantEnemies.GetValueOrDefault(oid);
         if (entry == null)
         {
-            entry = new();
-            foreach (var actor in WorldState.Actors.Where(actor => actor.OID == oid))
-                entry.Add(actor);
-            _relevantEnemies[oid] = entry;
+            _relevantEnemies[oid] = entry = WorldState.Actors.Where(actor => actor.OID == oid).ToList();
         }
         return entry;
     }
@@ -91,7 +88,7 @@ public abstract class BossModule : IDisposable
         Arena = new(WindowConfig, bounds);
 
         Info = ModuleRegistry.FindByOID(primary.OID);
-        StateMachine = Info?.StatesType != null ? ((StateMachineBuilder)Activator.CreateInstance(Info.StatesType, this)!).Build() : new(new());
+        StateMachine = Info != null ? ((StateMachineBuilder)Activator.CreateInstance(Info.StatesType, this)!).Build() : new(new());
         if (Info?.CooldownPlanningSupported ?? false)
         {
             PlanConfig = Service.Config.Get<CooldownPlanningConfigNode>(Info.ConfigType!);
