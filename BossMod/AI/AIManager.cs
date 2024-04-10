@@ -13,6 +13,7 @@ class AIManager : IDisposable
     private int _masterSlot = PartyState.PlayerSlot; // non-zero means corresponding player is master
     private AIBehaviour? _beh;
     private UISimpleWindow _ui;
+    private DTRProvider _dtr;
 
     public AIManager(Autorotation autorot)
     {
@@ -20,6 +21,7 @@ class AIManager : IDisposable
         _controller = new();
         _config = Service.Config.Get<AIConfig>();
         _ui = new("AI", DrawOverlay, false, new(100, 100), ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.NoFocusOnAppearing) { RespectCloseHotkey = false };
+        _dtr = new();
         Service.ChatGui.ChatMessage += OnChatMessage;
         Service.CommandManager.AddHandler("/vbmai", new Dalamud.Game.Command.CommandInfo(OnCommand) { HelpMessage = "Toggle AI mode" });
     }
@@ -28,6 +30,7 @@ class AIManager : IDisposable
     {
         SwitchToIdle();
         _ui.Dispose();
+        _dtr.Dispose();
         Service.ChatGui.ChatMessage -= OnChatMessage;
         Service.CommandManager.RemoveHandler("/vbmai");
     }
@@ -53,6 +56,8 @@ class AIManager : IDisposable
         _controller.Update(player);
 
         _ui.IsOpen = _config.Enabled && player != null && _config.DrawUI;
+
+        _dtr.Update(_beh);
     }
 
     private void DrawOverlay()

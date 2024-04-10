@@ -5,7 +5,10 @@ class AIConfig : ConfigNode
 {
     [PropertyDisplay("Enable AI")]
     public bool Enabled = false;
-    
+
+    [PropertyDisplay("Show Status in DTR Bar")]
+    public bool ShowDTR = true;
+
     [PropertyDisplay("Draw UI")]
     public bool DrawUI = true;
 
