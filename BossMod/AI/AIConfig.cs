@@ -1,14 +1,14 @@
 ﻿namespace BossMod.AI;
 
 [ConfigDisplay(Name = "AI settings (very experimental!!!)", Order = 6)]
-class AIConfig : ConfigNode
+sealed class AIConfig : ConfigNode
 {
     [PropertyDisplay("Enable AI")]
     public bool Enabled = false;
 
     [PropertyDisplay("Show Status in DTR Bar")]
     public bool ShowDTR = true;
-
+    
     [PropertyDisplay("Draw UI")]
     public bool DrawUI = true;
 
