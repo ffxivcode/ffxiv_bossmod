@@ -96,7 +96,7 @@ class OutInAOE(BossModule module) : Components.ConcentricAOEs(module, _shapes)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.WaxingCycle1)
-            AddSequence(Module.Bounds.Center, spell.NPCFinishAt);
+            AddSequence(Module.Center, spell.NPCFinishAt);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -121,7 +121,7 @@ class InOutAOE(BossModule module) : Components.ConcentricAOEs(module, _shapes)
     public override void OnCastStarted(Actor caster, ActorCastInfo spell)
     {
         if ((AID)spell.Action.ID == AID.WaningCycle1)
-            AddSequence(Module.Bounds.Center, spell.NPCFinishAt);
+            AddSequence(Module.Center, spell.NPCFinishAt);
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -265,4 +265,4 @@ class D112GalateaMagnaStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 896, NameID = 10308)]
-public class D112GalateaMagna(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(350, -394), 19.5f));
+public class D112GalateaMagna(WorldState ws, Actor primary) : BossModule(ws, primary, new(350, -394), new ArenaBoundsCircle(19.5f));

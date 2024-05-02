@@ -7,6 +7,7 @@ public record struct WDir(float X, float Z)
     public readonly Vector2 ToVec2() => new(X, Z);
     public readonly Vector3 ToVec3() => new(X, 0, Z);
     public readonly Vector4 ToVec4() => new(X, 0, Z, 0);
+    public readonly WPos ToWPos() => new(X, Z);
 
     public static WDir operator +(WDir a, WDir b) => new(a.X + b.X, a.Z + b.Z);
     public static WDir operator -(WDir a, WDir b) => new(a.X - b.X, a.Z - b.Z);
@@ -20,6 +21,8 @@ public record struct WDir(float X, float Z)
     public readonly WDir OrthoR() => new(-Z, X); // CW, same length
     public static float Dot(WDir a, WDir b) => a.X * b.X + a.Z * b.Z;
     public readonly float Dot(WDir a) => X * a.X + Z * a.Z;
+    public static float Cross(WDir a, WDir b) => a.X * b.Z - a.Z * b.X;
+    public readonly float Cross(WDir b) => Cross(this, b);
     public readonly float LengthSq() => X * X + Z * Z;
     public readonly float Length() => MathF.Sqrt(LengthSq());
     public static WDir Normalize(WDir a) => a / a.Length();
@@ -30,6 +33,14 @@ public record struct WDir(float X, float Z)
     public readonly bool AlmostEqual(WDir b, float eps) => AlmostZero(this - b, eps);
 
     public override readonly string ToString() => $"({X:f3}, {Z:f3})";
+
+    // area checks, assuming this is an offset from shape's center
+    public readonly bool InRect(WDir direction, float lenFront, float lenBack, float halfWidth)
+    {
+        var dotDir = Dot(direction);
+        var dotNormal = Dot(direction.OrthoL());
+        return dotDir >= -lenBack && dotDir <= lenFront && MathF.Abs(dotNormal) <= halfWidth;
+    }
 }
 
 // 2d vector that represents world-space position on XZ plane
@@ -37,6 +48,7 @@ public record struct WPos(float X, float Z)
 {
     public WPos(Vector2 v) : this(v.X, v.Y) { }
     public readonly Vector2 ToVec2() => new(X, Z);
+    public readonly WDir ToWDir() => new(X, Z);
 
     public static WPos operator +(WPos a, WDir b) => new(a.X + b.X, a.Z + b.Z);
     public static WPos operator +(WDir a, WPos b) => new(a.X + b.X, a.Z + b.Z);
@@ -59,18 +71,8 @@ public record struct WPos(float X, float Z)
         return d == 0 || (d < 0) == (s + t <= 0);
     }
 
-    public readonly bool InRect(WPos origin, WDir direction, float lenFront, float lenBack, float halfWidth)
-    {
-        var offset = this - origin;
-        var normal = direction.OrthoL();
-        var dotDir = offset.Dot(direction);
-        var dotNormal = offset.Dot(normal);
-        return dotDir >= -lenBack && dotDir <= lenFront && MathF.Abs(dotNormal) <= halfWidth;
-    }
-
-    public readonly bool InRect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth)
-        => InRect(origin, direction.ToDirection(), lenFront, lenBack, halfWidth);
-
+    public readonly bool InRect(WPos origin, WDir direction, float lenFront, float lenBack, float halfWidth) => (this - origin).InRect(direction, lenFront, lenBack, halfWidth);
+    public readonly bool InRect(WPos origin, Angle direction, float lenFront, float lenBack, float halfWidth) => (this - origin).InRect(direction.ToDirection(), lenFront, lenBack, halfWidth);
     public readonly bool InRect(WPos origin, WDir startToEnd, float halfWidth)
     {
         var len = startToEnd.Length();

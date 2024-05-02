@@ -67,13 +67,13 @@ public abstract class GenericGaze(BossModule module, ActionID aid = new(), bool 
 
     private Vector2 IndicatorScreenPos(WPos eye)
     {
-        if (Module.Bounds.Contains(eye))
+        if (Module.InBounds(eye))
         {
             return Arena.WorldPositionToScreenPosition(eye);
         }
         else
         {
-            var dir = (eye - Module.Bounds.Center).Normalized();
+            var dir = (eye - Module.Center).Normalized();
             return Arena.ScreenCenter + Arena.RotatedCoords(dir.ToVec2()) * (Arena.ScreenHalfSize + Arena.ScreenMarginSize / 2);
         }
     }

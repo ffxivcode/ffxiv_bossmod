@@ -54,8 +54,8 @@ class Hellpounce(BossModule module) : Components.GenericAOEs(module, ActionID.Ma
         switch ((AID)spell.Action.ID)
         {
             case AID.Hellpounce:
-                var offset = spell.LocXZ - Module.Bounds.Center;
-                Activate(spell.LocXZ, Module.Bounds.Center - offset, WorldState.FutureTime(3.7f));
+                var offset = spell.LocXZ - Module.Center;
+                Activate(spell.LocXZ, Module.Center - offset, WorldState.FutureTime(3.7f));
                 break;
             case AID.HellpounceSecond:
                 _charge = null;
@@ -123,4 +123,4 @@ class CE12BayingOfHoundsStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 735, NameID = 2)] // bnpcname=9394
-public class CE12BayingOfHounds(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(154, 785), 25));
+public class CE12BayingOfHounds(WorldState ws, Actor primary) : BossModule(ws, primary, new(154, 785), new ArenaBoundsCircle(25));

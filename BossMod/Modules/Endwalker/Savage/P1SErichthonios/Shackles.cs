@@ -202,15 +202,15 @@ class Shackles(BossModule module) : BossComponent(module)
 
     private void AssignOrder(Actor actor, int order, bool far)
     {
-        var way1 = WorldState.Waymarks[(Waymark)((int)Waymark.A + order)];
-        var way2 = WorldState.Waymarks[(Waymark)((int)Waymark.N1 + order)];
+        var way1 = WorldState.Waymarks[(int)Waymark.A + order];
+        var way2 = WorldState.Waymarks[(int)Waymark.N1 + order];
         if (way1 == null || way2 == null)
             return;
 
         var w1 = new WPos(way1.Value.XZ());
         var w2 = new WPos(way2.Value.XZ());
-        var d1 = (w1 - Module.Bounds.Center).LengthSq();
-        var d2 = (w2 - Module.Bounds.Center).LengthSq();
+        var d1 = (w1 - Module.Center).LengthSq();
+        var d2 = (w2 - Module.Center).LengthSq();
         bool use1 = far ? d1 > d2 : d1 < d2;
         int slot = Raid.FindSlot(actor.InstanceID);
         if (slot >= 0)

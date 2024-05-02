@@ -8,7 +8,7 @@ namespace BossMod;
 // note that player could be in party without having actor in world (e.g. if he is in different zone)
 // if player does not exist in world, party is always empty; otherwise player is always in slot 0
 // in alliance, two 'other' groups use slots 8-15 and 16-23; alliance members don't have content-ID, but always have actor-ID
-public class PartyState
+public sealed class PartyState
 {
     public const int PlayerSlot = 0;
     public const int MaxPartySize = 8;
@@ -30,18 +30,14 @@ public class PartyState
 
     public PartyState(ActorState actorState)
     {
-        actorState.Added += actor =>
+        void assign(ulong instanceID, Actor? actor)
         {
-            var slot = FindSlot(actor.InstanceID);
+            var slot = FindSlot(instanceID);
             if (slot >= 0)
                 _actors[slot] = actor;
-        };
-        actorState.Removed += actor =>
-        {
-            var slot = FindSlot(actor.InstanceID);
-            if (slot >= 0)
-                _actors[slot] = null;
-        };
+        }
+        actorState.Added.Subscribe(actor => assign(actor.InstanceID, actor));
+        actorState.Removed.Subscribe(actor => assign(actor.InstanceID, null));
     }
 
     // select non-null and optionally alive raid members
@@ -78,19 +74,15 @@ public class PartyState
     {
         for (int i = 0; i < MaxAllianceSize; ++i)
             if (i < MaxPartySize && _contentIDs[i] != 0 || _actorIDs[i] != 0)
-                yield return new OpModify() { Slot = i, ContentID = i < MaxPartySize ? _contentIDs[i] : 0, InstanceID = _actorIDs[i] };
+                yield return new OpModify(i, i < MaxPartySize ? _contentIDs[i] : 0, _actorIDs[i]);
         if (LimitBreakCur != 0 || LimitBreakMax != 10000)
-            yield return new OpLimitBreakChange() { Cur = LimitBreakCur, Max = LimitBreakMax };
+            yield return new OpLimitBreakChange(LimitBreakCur, LimitBreakMax);
     }
 
     // implementation of operations
-    public event Action<OpModify>? Modified;
-    public class OpModify : WorldState.Operation
+    public Event<OpModify> Modified = new();
+    public sealed record class OpModify(int Slot, ulong ContentID, ulong InstanceID) : WorldState.Operation
     {
-        public int Slot;
-        public ulong ContentID;
-        public ulong InstanceID;
-
         protected override void Exec(WorldState ws)
         {
             if (Slot is < 0 or >= MaxAllianceSize)
@@ -108,25 +100,20 @@ public class PartyState
                 ws.Party._contentIDs[Slot] = ContentID;
             ws.Party._actorIDs[Slot] = InstanceID;
             ws.Party._actors[Slot] = ws.Actors.Find(InstanceID);
-            ws.Party.Modified?.Invoke(this);
+            ws.Party.Modified.Fire(this);
         }
-
-        public override void Write(ReplayRecorder.Output output) => WriteTag(output, "PAR ").Emit(Slot).Emit(ContentID, "X").Emit(InstanceID, "X8");
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("PAR "u8).Emit(Slot).Emit(ContentID, "X").Emit(InstanceID, "X8");
     }
 
-    public event Action<OpLimitBreakChange>? LimitBreakChanged;
-    public class OpLimitBreakChange : WorldState.Operation
+    public Event<OpLimitBreakChange> LimitBreakChanged = new();
+    public sealed record class OpLimitBreakChange(int Cur, int Max) : WorldState.Operation
     {
-        public int Cur;
-        public int Max;
-
         protected override void Exec(WorldState ws)
         {
             ws.Party.LimitBreakCur = Cur;
             ws.Party.LimitBreakMax = Max;
-            ws.Party.LimitBreakChanged?.Invoke(this);
+            ws.Party.LimitBreakChanged.Fire(this);
         }
-
-        public override void Write(ReplayRecorder.Output output) => WriteTag(output, "LB  ").Emit(Cur).Emit(Max);
+        public override void Write(ReplayRecorder.Output output) => output.EmitFourCC("LB  "u8).Emit(Cur).Emit(Max);
     }
 }

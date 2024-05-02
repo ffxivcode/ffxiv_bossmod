@@ -10,7 +10,7 @@ public class AIHints
         public const int PriorityForbidFully = -2; // attacking this enemy is forbidden both by ai or player (e.g. invulnerable, or attacking/killing might lead to a wipe)
 
         public Actor Actor = actor;
-        public int Priority = actor.InCombat ? 0 : PriorityForbidAI; // <0 means damaging is actually forbidden, 0 is default
+        public int Priority = actor.InCombat || actor.FateID != 0 ? 0 : PriorityForbidAI; // <0 means damaging is actually forbidden, 0 is default (TODO: revise default...)
         //public float TimeToKill;
         public float AttackStrength = 0.05f; // target's predicted HP percent is decreased by this amount (0.05 by default)
         public WPos DesiredPosition = actor.Position; // tank AI will try to move enemy to this position
@@ -24,8 +24,9 @@ public class AIHints
         public bool StayAtLongRange; // if set, players with ranged attacks don't bother coming closer than max range (TODO: reconsider)
     }
 
-    public static readonly ArenaBounds DefaultBounds = new ArenaBoundsSquare(new(), 30);
+    public static readonly ArenaBounds DefaultBounds = new ArenaBoundsSquare(30);
 
+    public WPos Center;
     public ArenaBounds Bounds = DefaultBounds;
 
     // list of potential targets
@@ -60,6 +61,7 @@ public class AIHints
     // clear all stored data
     public void Clear()
     {
+        Center = default;
         Bounds = DefaultBounds;
         PotentialTargets.Clear();
         ForcedTarget = null;
@@ -73,9 +75,11 @@ public class AIHints
     // fill list of potential targets from world state
     public void FillPotentialTargets(WorldState ws, bool playerIsDefaultTank)
     {
-        foreach (var actor in ws.Actors.Where(a => a.Type == ActorType.Enemy && a.IsTargetable && !a.IsAlly && !a.IsDead))
+        bool playerInFate = ws.Client.ActiveFate.ID != 0 && ws.Party.Player()?.Level <= Service.LuminaRow<Lumina.Excel.GeneratedSheets.Fate>(ws.Client.ActiveFate.ID)?.ClassJobLevelMax;
+        var allowedFateID = playerInFate ? ws.Client.ActiveFate.ID : 0;
+        foreach (var actor in ws.Actors.Where(a => a.Type == ActorType.Enemy && a.IsTargetable && !a.IsAlly && !a.IsDead && (a.FateID == 0 || a.FateID == allowedFateID)))
         {
-            PotentialTargets.Add(new(actor, playerIsDefaultTank));
+            PotentialTargets.Add(new(actor, playerIsDefaultTank && (actor.InCombat || actor.FateID != 0)));
         }
     }
 
@@ -134,4 +138,6 @@ public class AIHints
     public int NumPriorityTargetsInAOECircle(WPos origin, float radius) => NumPriorityTargetsInAOE(a => a.Actor.Position.InCircle(origin, radius + a.Actor.HitboxRadius));
     public int NumPriorityTargetsInAOECone(WPos origin, float radius, WDir direction, Angle halfAngle) => NumPriorityTargetsInAOE(a => a.Actor.Position.InCircleCone(origin, radius + a.Actor.HitboxRadius, direction, halfAngle));
     public int NumPriorityTargetsInAOERect(WPos origin, WDir direction, float lenFront, float halfWidth, float lenBack = 0) => NumPriorityTargetsInAOE(a => a.Actor.Position.InRect(origin, direction, lenFront + a.Actor.HitboxRadius, lenBack, halfWidth));
+
+    public WPos ClampToBounds(WPos position) => Center + Bounds.ClampToBounds(position - Center);
 }

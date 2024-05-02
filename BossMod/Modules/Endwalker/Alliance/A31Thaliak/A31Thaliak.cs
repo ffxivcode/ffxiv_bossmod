@@ -36,4 +36,16 @@ class RightBank(BossModule module) : Components.SelfTargetedAOEs(module, ActionI
 class RightBank2(BossModule module) : Components.SelfTargetedAOEs(module, ActionID.MakeSpell(AID.RightBank2), new AOEShapeCone(60, 90.Degrees()));
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus, LTS", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 962, NameID = 11298, SortOrder = 2)]
-public class A31Thaliak(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsSquare(new(-945, 945), 24));
+public class A31Thaliak(WorldState ws, Actor primary) : BossModule(ws, primary, new(-945, 945), NormalBounds)
+{
+    public static readonly ArenaBoundsSquare NormalBounds = new(24);
+    public static readonly ArenaBoundsCustom TriBounds = BuildTriBounds();
+
+    private static ArenaBoundsCustom BuildTriBounds()
+    {
+        var hw = NormalBounds.Radius * 0.86602540378443864676372317075294f; // sqrt(3) / 2;
+        var hh = NormalBounds.Radius * 0.5f;
+        List<WDir> verts = [new(-hw, hh), new(+hw, hh), new(0, -NormalBounds.Radius)];
+        return new(NormalBounds.Radius, new([new(verts)]));
+    }
+}

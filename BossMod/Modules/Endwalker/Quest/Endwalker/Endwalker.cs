@@ -34,7 +34,7 @@ class EndwalkerStates : StateMachineBuilder
             .ActivateOnEnter<WyrmsTongue>()
             .ActivateOnEnter<UnmovingDvenadkatik>()
             .ActivateOnEnter<TheEdgeUnbound2>()
-            .Raw.Update = () => module.ZenosP2() is var ZenosP2 && ZenosP2 != null && !ZenosP2.IsTargetable && ZenosP2.HP.Cur <= 1;
+            .Raw.Update = () => module.ZenosP2() is var ZenosP2 && ZenosP2 != null && !ZenosP2.IsTargetable && ZenosP2.HPMP.CurHP <= 1;
     }
 }
 
@@ -78,7 +78,7 @@ public class Endwalker : BossModule
     public Actor? ZenosP1() => PrimaryActor.IsDestroyed ? null : PrimaryActor;
     public Actor? ZenosP2() => _zenosP2.FirstOrDefault();
 
-    public Endwalker(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(100, 100), 20))
+    public Endwalker(WorldState ws, Actor primary) : base(ws, primary, new(100, 100), new ArenaBoundsSquare(20))
     {
         _zenosP2 = Enemies(OID.ZenosP2);
     }

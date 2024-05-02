@@ -32,7 +32,7 @@ class Voidzone(BossModule module) : BossComponent(module)
     public override void OnEventEnvControl(byte index, uint state)
     {
         if (state == 0x00020001 && index == 0x00)
-            Module.Arena.Bounds = new ArenaBoundsRect(new(0, 60), 19.5f, 20);
+            Module.Arena.Bounds = new ArenaBoundsRect(19.5f, 20);
     }
 }
 
@@ -67,7 +67,7 @@ class Landslip(BossModule module) : Components.Knockback(module)
     {
         if (Module.FindComponent<Towerfall>() is var towerfall && towerfall != null && towerfall.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)))
             return true;
-        if (!Module.Bounds.Contains(pos))
+        if (!Module.InBounds(pos))
             return true;
         else
             return false;
@@ -171,4 +171,4 @@ class D132DamcyanAntilonStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 823, NameID = 12484)]
-public class D132DamcyanAntilon(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsRect(new(0, 60), 19.5f, 25));
+public class D132DamcyanAntilon(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 60), new ArenaBoundsRect(19.5f, 25));

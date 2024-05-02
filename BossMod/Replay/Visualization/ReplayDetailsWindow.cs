@@ -63,7 +63,7 @@ class ReplayDetailsWindow : UIWindow
             var drawTimerPost = DateTime.Now;
 
             var compList = string.Join(", ", _mgr.ActiveModule.Components.Select(c => c.GetType().Name));
-            var playerOffset = (_mgr.WorldState.Party.Player()?.Position ?? _mgr.ActiveModule.Bounds.Center) - _mgr.ActiveModule.Bounds.Center;
+            var playerOffset = (_mgr.WorldState.Party.Player()?.Position ?? _mgr.ActiveModule.Center) - _mgr.ActiveModule.Center;
             var playerOffString = $"{playerOffset} [R={playerOffset.Length():f3}, dir={Angle.FromDirection(playerOffset)}]";
             ImGui.TextUnformatted($"Current state: {_mgr.ActiveModule.StateMachine.ActiveState?.ID:X}, Time since pull: {_mgr.ActiveModule.StateMachine.TimeSinceActivation:f3}, Draw time: {(drawTimerPost - drawTimerPre).TotalMilliseconds:f3}ms, Components: {compList}, Player offset: {playerOffString}");
 
@@ -193,10 +193,10 @@ class ReplayDetailsWindow : UIWindow
             actor.PosRot = new(posX, actor.PosRot.Y, posZ, rot.Degrees().Rad);
 
         ImGui.TableNextColumn();
-        if (actor.HP.Max > 0)
+        if (actor.HPMP.MaxHP > 0)
         {
-            float frac = Math.Min((float)(actor.HP.Cur + actor.HP.Shield) / actor.HP.Max, 1);
-            ImGui.ProgressBar(frac, new(ImGui.GetColumnWidth(), 0), $"{frac * 100:f1}% ({actor.HP.Cur} + {actor.HP.Shield} / {actor.HP.Max})");
+            float frac = Math.Min((float)(actor.HPMP.CurHP + actor.HPMP.Shield) / actor.HPMP.MaxHP, 1);
+            ImGui.ProgressBar(frac, new(ImGui.GetColumnWidth(), 0), $"{frac * 100:f1}% ({actor.HPMP.CurHP} + {actor.HPMP.Shield} / {actor.HPMP.MaxHP})");
         }
 
         ImGui.TableNextColumn();

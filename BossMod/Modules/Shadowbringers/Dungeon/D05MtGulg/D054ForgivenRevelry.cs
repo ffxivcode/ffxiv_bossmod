@@ -31,10 +31,10 @@ class PalmAttacks(BossModule module) : Components.GenericAOEs(module) //Palm Att
         switch ((AID)spell.Action.ID)
         {
             case AID.LeftPalm2:
-                _aoe = new(rect, new(Module.PrimaryActor.Position.X, Module.Bounds.Center.Z), -90.Degrees(), spell.NPCFinishAt);
+                _aoe = new(rect, new(Module.PrimaryActor.Position.X, Module.Center.Z), -90.Degrees(), spell.NPCFinishAt);
                 break;
             case AID.RightPalm2:
-                _aoe = new(rect, new(Module.PrimaryActor.Position.X, Module.Bounds.Center.Z), 90.Degrees(), spell.NPCFinishAt);
+                _aoe = new(rect, new(Module.PrimaryActor.Position.X, Module.Center.Z), 90.Degrees(), spell.NPCFinishAt);
                 break;
         }
     }
@@ -59,4 +59,4 @@ class D054ForgivenRevelryStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 659, NameID = 8270)]
-public class D054ForgivenRevelry(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsSquare(new(-240, 176), 15));
+public class D054ForgivenRevelry(WorldState ws, Actor primary) : BossModule(ws, primary, new(-240, 176), new ArenaBoundsSquare(15));

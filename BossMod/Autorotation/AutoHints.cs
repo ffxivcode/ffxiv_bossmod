@@ -7,24 +7,36 @@ public sealed class AutoHints : IDisposable
     private const float RaidwideSize = 30;
 
     private readonly WorldState _ws;
+    private readonly EventSubscriptions _subscriptions;
     private readonly Dictionary<ulong, (Actor Caster, Actor? Target, AOEShape Shape, bool IsCharge)> _activeAOEs = [];
+    private ArenaBoundsCircle? _activeFateBounds;
 
     public AutoHints(WorldState ws)
     {
         _ws = ws;
-        _ws.Actors.CastStarted += OnCastStarted;
-        _ws.Actors.CastFinished += OnCastFinished;
+        _subscriptions = new
+        (
+            ws.Actors.CastStarted.Subscribe(OnCastStarted),
+            ws.Actors.CastFinished.Subscribe(OnCastFinished),
+            ws.Client.ActiveFateChanged.Subscribe(_ => _activeFateBounds = null)
+        );
     }
 
-    public void Dispose()
-    {
-        _ws.Actors.CastStarted -= OnCastStarted;
-        _ws.Actors.CastFinished -= OnCastFinished;
-    }
+    public void Dispose() => _subscriptions.Dispose();
 
-    public void CalculateAIHints(AIHints hints, WPos playerPos)
+    public void CalculateAIHints(AIHints hints, Actor player)
     {
-        hints.Bounds = new ArenaBoundsSquare(playerPos, 30);
+        if (_ws.Client.ActiveFate.ID != 0 && player.Level <= Service.LuminaRow<Lumina.Excel.GeneratedSheets.Fate>(_ws.Client.ActiveFate.ID)?.ClassJobLevelMax)
+        {
+            hints.Center = new(_ws.Client.ActiveFate.Center.XZ());
+            hints.Bounds = (_activeFateBounds ??= new ArenaBoundsCircle(_ws.Client.ActiveFate.Radius));
+        }
+        else
+        {
+            hints.Center = player.Position;
+            // keep default bounds
+        }
+
         foreach (var aoe in _activeAOEs.Values)
         {
             var target = aoe.Target?.Position ?? aoe.Caster.CastInfo!.LocXZ;

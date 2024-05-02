@@ -37,8 +37,8 @@ class NavigatorsTridentKnockback(BossModule module) : Components.Knockback(modul
         {
             _sources.Clear();
             // knockback rect always happens through center, so create two sources with origin at center looking orthogonally
-            _sources.Add(new(Module.Bounds.Center, 20, spell.NPCFinishAt, _shape, spell.Rotation + 90.Degrees(), Kind.DirForward));
-            _sources.Add(new(Module.Bounds.Center, 20, spell.NPCFinishAt, _shape, spell.Rotation - 90.Degrees(), Kind.DirForward));
+            _sources.Add(new(Module.Center, 20, spell.NPCFinishAt, _shape, spell.Rotation + 90.Degrees(), Kind.DirForward));
+            _sources.Add(new(Module.Center, 20, spell.NPCFinishAt, _shape, spell.Rotation - 90.Degrees(), Kind.DirForward));
         }
     }
 
@@ -51,5 +51,5 @@ class NavigatorsTridentKnockback(BossModule module) : Components.Knockback(modul
         }
     }
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => Module.FindComponent<SerpentsTide>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false || !Module.Bounds.Contains(pos);
+    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos) => Module.FindComponent<SerpentsTide>()?.ActiveAOEs(slot, actor).Any(z => z.Shape.Check(pos, z.Origin, z.Rotation)) ?? false || !Module.InBounds(pos);
 }

@@ -55,7 +55,7 @@ class Stormcall(BossModule module) : Components.GenericAOEs(module, ActionID.Mak
     {
         if ((SID)status.ID == SID.OrbMovement)
         {
-            var dest = Module.Bounds.Center + 29 * (actor.Position - Module.Bounds.Center).Normalized();
+            var dest = Module.Center + 29 * (actor.Position - Module.Center).Normalized();
             _sources.Add((actor, dest, WorldState.FutureTime(status.Extra == 0x1E ? 9.7f : 19.9f)));
             _sources.SortBy(e => e.activation);
         }
@@ -161,4 +161,4 @@ class CE63WornToShadowStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Verified, GroupType = BossModuleInfo.GroupType.BozjaCE, GroupID = 778, NameID = 28)] // bnpcname=9973
-public class CE63WornToShadow(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(-480, -690), 30));
+public class CE63WornToShadow(WorldState ws, Actor primary) : BossModule(ws, primary, new(-480, -690), new ArenaBoundsCircle(30));

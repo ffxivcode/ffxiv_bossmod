@@ -5,7 +5,7 @@ class Phase2ArenaUpdate(BossModule module) : BossComponent(module)
     public override void OnEventEnvControl(byte index, uint state)
     {
         if (state == 0x00200010 && index == 0x42)
-            Module.Arena.Bounds = new ArenaBoundsSquare(new(0, 750), 20);
+            Module.Arena.Bounds = new ArenaBoundsSquare(20);
     }
 }
 
@@ -43,6 +43,6 @@ class A33OschonStates : StateMachineBuilder
             .ActivateOnEnter<WanderingVolleyRaidwide2>()
             .ActivateOnEnter<TheArrowP2>()
             .ActivateOnEnter<FlintedFoehnP2>()
-            .Raw.Update = () => _module.OschonP2 != null && _module.OschonP2()?.HP.Cur == 1;
+            .Raw.Update = () => _module.OschonP2 != null && _module.OschonP2()?.HPMP.CurHP == 1;
     }
 }

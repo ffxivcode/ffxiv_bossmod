@@ -38,9 +38,9 @@ class RonkanLight(BossModule module) : Components.GenericAOEs(module)
         if (state == 0x00040008)
         {
             if (actor.Position.AlmostEqual(new(8, 328), 1))
-                _aoe = new(rect, Module.Bounds.Center, 90.Degrees(), WorldState.FutureTime(8));
+                _aoe = new(rect, Module.Center, 90.Degrees(), WorldState.FutureTime(8));
             if (actor.Position.AlmostEqual(new(-7, 328), 1))
-                _aoe = new(rect, Module.Bounds.Center, -90.Degrees(), WorldState.FutureTime(8));
+                _aoe = new(rect, Module.Center, -90.Degrees(), WorldState.FutureTime(8));
         }
     }
 
@@ -66,4 +66,4 @@ class D031LozatlStates : StateMachineBuilder
 }
 
 [ModuleInfo(BossModuleInfo.Maturity.Contributed, Contributors = "Malediktus", GroupType = BossModuleInfo.GroupType.CFC, GroupID = 651, NameID = 8231)]
-public class D031Lozatl(WorldState ws, Actor primary) : BossModule(ws, primary, new ArenaBoundsCircle(new(0, 315), 20));
+public class D031Lozatl(WorldState ws, Actor primary) : BossModule(ws, primary, new(0, 315), new ArenaBoundsCircle(20));

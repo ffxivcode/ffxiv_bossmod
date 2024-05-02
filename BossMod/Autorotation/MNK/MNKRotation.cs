@@ -328,14 +328,12 @@ public static class Rotation
             state.Unlocked(AID.SteelPeak)
             && state.Chakra == 5
             && state.CanWeave(CDGroup.SteelPeak, 0.6f, deadline)
-            && (
-                // prevent early use in opener
-                state.CD(CDGroup.RiddleOfFire) > 0
+            && (state.CD(CDGroup.RiddleOfFire) > 0 // prevent early use in opener
                 || strategy.FireUse == Strategy.FireStrategy.Delay
                 || strategy.FireUse == Strategy.FireStrategy.DelayUntilBrotherhood
                 || !state.Unlocked(AID.RiddleOfFire)
+                )
             )
-        )
         {
             // L15 Steel Peak is 180p
             // L40 Howling Fist is 100p/target => HF at 2+ targets
@@ -499,15 +497,10 @@ public static class Rotation
         if (strategy.BrotherhoodUse == Strategy.OffensiveAbilityUse.Force)
             return true;
 
-        return !strategy.UseAOE
-            && state.CD(CDGroup.RiddleOfFire) > 0
-            && (
-                // opener timing mostly important as long as rof is used first, we just want to align with party buffs -
-                // the default opener is bhood after first bootshine
-                state.LeadenFistLeft == 0
-                // later uses can be asap
-                || strategy.CombatTimer > 30
-            );
+        // opener timing mostly important as long as rof is used first, we just want to align with party buffs -
+        // the default opener is bhood after first bootshine
+        // later uses can be asap
+        return !strategy.UseAOE && state.CD(CDGroup.RiddleOfFire) > 0 && (state.LeadenFistLeft == 0 || strategy.CombatTimer > 30);
     }
 
     private static bool ShouldUsePB(State state, Strategy strategy, float deadline)

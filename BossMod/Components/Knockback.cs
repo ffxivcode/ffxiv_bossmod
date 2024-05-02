@@ -48,7 +48,7 @@ public abstract class Knockback(BossModule module, ActionID aid = new(), bool ig
     {
         if (from != to)
         {
-            arena.Actor(to, rot, ArenaColor.Danger);
+            arena.ActorProjected(from, to, rot, ArenaColor.Danger);
             if (arena.Config.ShowOutlinesAndShadows)
                 arena.AddLine(from, to, 0xFF000000, 2);
             arena.AddLine(from, to, ArenaColor.Danger);
@@ -60,7 +60,7 @@ public abstract class Knockback(BossModule module, ActionID aid = new(), bool ig
     public abstract IEnumerable<Source> Sources(int slot, Actor actor);
 
     // called to determine whether we need to show hint
-    public virtual bool DestinationUnsafe(int slot, Actor actor, WPos pos) => !StopAtWall && !Module.Bounds.Contains(pos);
+    public virtual bool DestinationUnsafe(int slot, Actor actor, WPos pos) => !StopAtWall && !Module.InBounds(pos);
 
     public override void AddHints(int slot, Actor actor, TextHints hints)
     {
@@ -157,7 +157,7 @@ public abstract class Knockback(BossModule module, ActionID aid = new(), bool ig
                 continue; // this could happen if attract starts from < min distance
 
             if (StopAtWall)
-                distance = Math.Min(distance, Module.Bounds.IntersectRay(from, dir) - actor.HitboxRadius);
+                distance = Math.Min(distance, Module.Arena.IntersectRayBounds(from, dir) - actor.HitboxRadius);
 
             var to = from + distance * dir;
             yield return (from, to);

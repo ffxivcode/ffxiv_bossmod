@@ -22,16 +22,16 @@ public class DemoModule : BossModule
 
         public override void DrawArenaBackground(int pcSlot, Actor pc)
         {
-            Arena.ZoneCircle(Module.Bounds.Center, 10, ArenaColor.AOE);
+            Arena.ZoneCircle(Module.Center, 10, ArenaColor.AOE);
         }
 
         public override void DrawArenaForeground(int pcSlot, Actor pc)
         {
-            Arena.Actor(Module.Bounds.Center, 0.Degrees(), ArenaColor.PC);
+            Arena.Actor(Module.Center, 0.Degrees(), ArenaColor.PC);
         }
     }
 
-    public DemoModule(WorldState ws, Actor primary) : base(ws, primary, new ArenaBoundsSquare(new(100, 100), 20))
+    public DemoModule(WorldState ws, Actor primary) : base(ws, primary, new(100, 100), new ArenaBoundsSquare(20))
     {
         ActivateComponent<DemoComponent>();
     }
