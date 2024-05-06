@@ -5,6 +5,7 @@ class P1BallisticImpact(BossModule module) : Components.LocationTargetedAOEs(mod
 class P1FlameThrower(BossModule module) : Components.GenericAOEs(module)
 {
     public List<Actor> Casters = [];
+    private readonly TOPConfig _config = Service.Config.Get<TOPConfig>();
     private readonly P1Pantokrator? _pantokrator = module.FindComponent<P1Pantokrator>();
 
     private static readonly AOEShapeCone _shape = new(65, 30.Degrees());
@@ -25,7 +26,12 @@ class P1FlameThrower(BossModule module) : Components.GenericAOEs(module)
         var group = _pantokrator != null ? _pantokrator.PlayerStates[pcSlot].Group : 0;
         if (group > 0)
         {
-            var dir = (Casters[0].CastInfo!.Rotation - Module.PrimaryActor.Rotation).Normalized().Deg switch
+            var flame1Dir = Casters[0].CastInfo!.Rotation - Module.PrimaryActor.Rotation;
+            // if ne/sw, set of safe cones is offset by 1 rotation
+            if (_config.P1PantokratorNESW)
+                flame1Dir += 60.Degrees();
+
+            var dir = flame1Dir.Normalized().Deg switch
             {
                 (> 15 and < 45) or (> -165 and < -135) => -60.Degrees(),
                 (> 45 and < 75) or (> -135 and < -105) => -30.Degrees(),
@@ -34,6 +40,9 @@ class P1FlameThrower(BossModule module) : Components.GenericAOEs(module)
                 (> 135 and < 165) or (> -45 and < -15) => 60.Degrees(),
                 _ => -90.Degrees(), // assume groups go CW
             };
+            // undo direction adjustment to correct target safe spot
+            if (_config.P1PantokratorNESW)
+                dir -= 60.Degrees();
             var offset = 12 * (Module.PrimaryActor.Rotation + dir).ToDirection();
             var pos = group == 1 ? Module.Center + offset : Module.Center - offset;
             Arena.AddCircle(pos, 1, ArenaColor.Safe);

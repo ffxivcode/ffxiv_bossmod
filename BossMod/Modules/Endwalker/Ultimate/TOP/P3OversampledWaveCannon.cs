@@ -8,6 +8,7 @@ class P3OversampledWaveCannon(BossModule module) : BossComponent(module)
     private readonly int[] _playerOrder = new int[PartyState.MaxPartySize];
     private int _numPlayerAngles;
     private readonly List<int> _monitorOrder = [];
+    private readonly TOPConfig _config = Service.Config.Get<TOPConfig>();
 
     private static readonly AOEShapeRect _shape = new(50, 50);
 
@@ -88,17 +89,25 @@ class P3OversampledWaveCannon(BossModule module) : BossComponent(module)
         WPos adjust(float x, float z) => Module.Center + new WDir(_bossAngle.Rad < 0 ? -x : x, z);
         if (IsMonitor(slot))
         {
-            yield return (adjust(10, -11), _playerOrder[slot] == 1);
-            yield return (adjust(-11, -9), _playerOrder[slot] == 2);
-            yield return (adjust(-11, +9), _playerOrder[slot] == 3);
+            var nextSlot = 0;
+            if (!_config.P3LastMonitorSouth)
+                yield return (adjust(10, -11), _playerOrder[slot] == ++nextSlot);
+            yield return (adjust(-11, -9), _playerOrder[slot] == ++nextSlot);
+            yield return (adjust(-11, +9), _playerOrder[slot] == ++nextSlot);
+            if (_config.P3LastMonitorSouth)
+                yield return (adjust(10, 11), _playerOrder[slot] == ++nextSlot);
         }
         else
         {
-            yield return (adjust(1, -15), _playerOrder[slot] == 1);
-            yield return (adjust(15, -4), _playerOrder[slot] == 2);
-            yield return (adjust(15, +4), _playerOrder[slot] == 3);
-            yield return (adjust(10, 11), _playerOrder[slot] == 4);
-            yield return (adjust(1, 15), _playerOrder[slot] == 5);
+            var nextSlot = 0;
+            yield return (adjust(1, -15), _playerOrder[slot] == ++nextSlot);
+            if (_config.P3LastMonitorSouth)
+                yield return (adjust(10, -11), _playerOrder[slot] == ++nextSlot);
+            yield return (adjust(15, -4), _playerOrder[slot] == ++nextSlot);
+            yield return (adjust(15, +4), _playerOrder[slot] == ++nextSlot);
+            if (!_config.P3LastMonitorSouth)
+                yield return (adjust(10, 11), _playerOrder[slot] == ++nextSlot);
+            yield return (adjust(1, 15), _playerOrder[slot] == ++nextSlot);
         }
     }
 

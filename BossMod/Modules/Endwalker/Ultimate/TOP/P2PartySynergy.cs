@@ -6,6 +6,7 @@ class P2PartySynergy(BossModule module) : CommonAssignments(module)
 
     public Glitch ActiveGlitch;
     public bool EnableDistanceHints;
+    private readonly TOPConfig _config = Service.Config.Get<TOPConfig>();
 
     protected override (GroupAssignmentUnique assignment, bool global) Assignments()
     {
@@ -84,6 +85,25 @@ class P2PartySynergy(BossModule module) : CommonAssignments(module)
         Glitch.Remote => (34, 50),
         _ => (0, 50)
     };
+
+    // determine north => south order for player based on what glitch is active, used for flare stacks
+    public int GetNorthSouthOrder(PlayerState st)
+    {
+        if (st.Group is < 1 or > 2)
+            return 0;
+
+        if (st.Group == 1 || ActiveGlitch == Glitch.Mid)
+            return st.Order;
+
+        return st.Order switch
+        {
+            1 => 4,
+            2 => _config.P2PartySynergyG2ReverseAll ? 3 : 2,
+            3 => _config.P2PartySynergyG2ReverseAll ? 2 : 3,
+            4 => 1,
+            _ => 0
+        };
+    }
 }
 
 class P2PartySynergyDoubleAOEs(BossModule module) : Components.GenericAOEs(module)
@@ -176,20 +196,14 @@ class P2PartySynergyOpticalLaser(BossModule module) : Components.GenericAOEs(mod
             return new();
 
         var ps = _synergy.PlayerStates[slot];
-        if (ps.Order == 0 || ps.Group == 0)
+        if (ps.Order == 0 || ps.Group == 0 || _synergy.ActiveGlitch == P2PartySynergy.Glitch.Unknown)
             return new();
 
         var eyeOffset = _source.Position - Module.Center;
-        switch (_synergy.ActiveGlitch)
-        {
-            case P2PartySynergy.Glitch.Mid:
-                var toRelNorth = eyeOffset.Normalized();
-                return 10 * (2.5f - ps.Order) * toRelNorth + 11 * (ps.Group == 1 ? toRelNorth.OrthoL() : toRelNorth.OrthoR());
-            case P2PartySynergy.Glitch.Remote:
-                return 19 * (Angle.FromDirection(eyeOffset) + ps.Order * 40.Degrees() - 10.Degrees() + (ps.Group == 1 ? 0.Degrees() : 180.Degrees())).ToDirection();
-            default:
-                return new();
-        }
+        var toRelNorth = eyeOffset.Normalized();
+        var order = _synergy.GetNorthSouthOrder(ps);
+        var centerOffset = _synergy.ActiveGlitch == P2PartySynergy.Glitch.Remote && order is 2 or 3 ? 17.5f : 11;
+        return 10 * (2.5f - order) * toRelNorth + centerOffset * (ps.Group == 1 ? toRelNorth.OrthoL() : toRelNorth.OrthoR());
     }
 }
 
@@ -209,6 +223,7 @@ class P2PartySynergyEfficientBladework : Components.GenericAOEs
     private int _firstStackSlot = -1;
     private BitMask _firstGroup;
     private string _swaps = "";
+    private readonly TOPConfig _config = Service.Config.Get<TOPConfig>();
 
     private static readonly AOEShapeCircle _shape = new(10);
 
@@ -275,8 +290,13 @@ class P2PartySynergyEfficientBladework : Components.GenericAOEs
                 var s2 = _synergy.PlayerStates[slot];
                 if (s1.Group == s2.Group)
                 {
-                    // ok, we need adjusts - assume whoever is more S adjusts - that is higher order in G1 or G2 with mid glitch, or lower order in G2 with remote glitch
-                    var adjustOrder = s1.Group == 2 && _synergy.ActiveGlitch == P2PartySynergy.Glitch.Remote ? Math.Min(s1.Order, s2.Order) : Math.Max(s1.Order, s2.Order);
+                    // need adjust
+                    var s1Order = _synergy.GetNorthSouthOrder(s1);
+                    var s2Order = _synergy.GetNorthSouthOrder(s2);
+                    int adjustOrder = _config.P2PartySynergyStackSwapSouth
+                        ? s1Order > s2Order ? s1.Order : s2.Order // south = higher order will swap
+                        : s1Order > s2Order ? s2.Order : s1.Order; // north = lower
+
                     for (int s = 0; s < _synergy.PlayerStates.Length; ++s)
                     {
                         if (_synergy.PlayerStates[s].Order == adjustOrder)
