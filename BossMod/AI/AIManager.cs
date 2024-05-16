@@ -13,7 +13,7 @@ sealed class AIManager : IDisposable
     private readonly AIConfig _config;
     private int _masterSlot = PartyState.PlayerSlot; // non-zero means corresponding player is master
     private AIBehaviour? _beh;
-    private DtrBarEntry _dtrBarEntry;
+    private readonly DtrBarEntry _dtrBarEntry;
     private readonly UISimpleWindow _ui;
 
     public AIManager(Autorotation autorot)
@@ -74,7 +74,6 @@ sealed class AIManager : IDisposable
                     SwitchToIdle();
                 else
                     SwitchToFollow(PartyState.PlayerSlot);
-                
             };
         }
     }
